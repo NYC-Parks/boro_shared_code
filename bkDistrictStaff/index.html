@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Load d3.js -->
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <title>First D3 template</title>
+</head>
+<body>
+  <!-- Create a div for the graph -->
+  <div id="dataviz"></div>
+  <!-- Create a div for District buttons -->
+  <div class="selection">
+    <button class="button" onclick="update('All.csv')">All Districts</button>
+    <button class="button" onclick="update('D1.csv')">District 1</button>
+    <button class="button" onclick="update('D2.csv')">District 2</button>
+    <button class="button" onclick="update('D3.csv')">District 3</button>
+    <button class="button" onclick="update('D4.csv')">District 4</button>
+    <button class="button" onclick="update('D5.csv')">District 5</button>
+    <button class="button" onclick="update('D6.csv')">District 6</button>
+    <button class="button" onclick="update('D7.csv')">District 7</button>
+    <button class="button" onclick="update('D8.csv')">District 8</button>
+    <button class="button" onclick="update('D9.csv')">District 9</button>
+    <button class="button" onclick="update('D10.csv')">District 10</button>
+    <button class="button" onclick="update('D11.csv')">District 11</button>
+    <button class="button" onclick="update('D12.csv')">District 12</button>
+    <button class="button" onclick="update('D13.csv')">District 13</button>
+    <button class="button" onclick="update('D14.csv')">District 14</button>
+    <button class="button" onclick="update('D15.csv')">District 15</button>
+    <button class="button" onclick="update('D16.csv')">District 16</button>
+    <button class="button" onclick="update('D17.csv')">District 17</button>
+    <button class="button" onclick="update('D18.csv')">District 18</button>
+    <button class="button" onclick="update('D19.csv')">District 19</button>
+  </div>
+  <script>
+
+  // set the dimensions and margins of the graph
+  let margin = {top: 35, right: 25, bottom: 100, left: 200},
+      width = 800 - margin.left - margin.right,
+      height = 600 - margin.top - margin.bottom;
+
+  let tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
+
+  // append the svg object to the body of the page
+  let svg = d3.select("#dataviz")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    //Create Title 
+  svg.append("text")
+    .attr("x", width / 2 )
+    .attr("y", -15)
+    .attr("class", "title")
+    .text("Brooklyn Staffing Survey");
+
+
+  // Define X axis
+  let x = d3.scaleBand()
+      .range([0, width])
+      .padding([0.2]);
+  let xAxis = svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      ;
+
+  // Define Y axis
+  let y = d3.scaleLinear()
+      .domain([0, 350])
+      .range([ height, 0 ]);
+  let yAxis = svg.append("g")
+      .call(d3.axisLeft(y));
+
+  function update(selectDistrict){
+    // Parse the Data
+    d3.csv(selectDistrict, function(data) {
+
+      // List of subgroups = header of the csv files =  season/year here
+      subgroups = data.columns.slice(1)
+      console.log(subgroups);
+
+      // Value of the first column called group -> I show them on the X axis
+      groups = d3.map(data, function(d){return(d.group)}).keys()
+      console.log(groups);
+
+      // Add X axis domain & text
+      x.domain(groups)
+      xAxis.call(d3.axisBottom(x).tickSize(0))
+          .selectAll(".tick text")
+          .call(wrap, x.bandwidth());
+
+      // Max value for Y axis
+      let maxY =  d3.max(data, function(d) {return +d["Summer 2019"],+d["Fall 2019"],+d["Winter 2019"],+d["Spring 2020"],+d["Fall 2020"],+d["Winter 2020"]});
+
+      // Update Y axis
+      y.domain([0, maxY])
+      yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
+      // Another scale for subgroup position?
+      let xSubgroup = d3.scaleBand()
+        .domain(subgroups)
+        .range([0, x.bandwidth()])
+        .padding([0.05])
+
+      // color palette = one color per subgroup
+      let color = d3.scaleOrdinal()
+        .domain(subgroups)
+        .range(['#003f5c','#374c80', '#7a5195', '#bc5090', '#ef5675', '#ff764a', '#ffa600'])
+
+
+      //select all bars on the graph, take them out, and exit the previous data set. 
+      //then you can add/enter the new data set
+      svg.selectAll(".bar").data(data).remove().exit();
+
+      let bars = svg.append("g")
+          .attr("class", "bar")
+          .selectAll("g")
+          .data(data)
+      bars = bars.enter().append("g")
+          .attr("transform", function(d) { return "translate(" + x(d.group) + ",0)"; })
+          .selectAll("rect")
+          .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+      bars = bars
+        .enter().append("rect")
+          .attr("x", function(d) { return xSubgroup(d.key); })
+          .attr("width", xSubgroup.bandwidth())
+          .attr("fill", function(d) { return color(d.key); })
+          //add tooltip:
+          .on("mousemove", function(d){
+            tooltip.style("left", d3.event.pageX+10+"px");
+            tooltip.style("top", d3.event.pageY-25+"px");
+            tooltip.style("display", "inline-block");
+            let x = d3.event.pageX, y = d3.event.pageY
+            let elements = document.querySelectorAll(':hover');
+            l = elements.length
+            l = l-1
+            elementData = elements[l].__data__;
+            let activeBar = window.activeBar = elements[l];
+            tooltip.html("# of Staff: " + d.value);
+            d3.select(activeBar).style('opacity', 0.5)  
+          })
+          .on("mouseout", function(d){
+            tooltip.style("display", "none");
+            d3.select(window.activeBar).style('opacity',1);
+            window.activeBar = {};
+          });
+
+      bars.transition()
+          .duration(500)
+          .attr("y", function(d) { return y(d.value); })
+          .attr("height", function(d) { return height - y(d.value); });
+
+      //define legend
+      let options = ["Summer 2019", "Fall 2019","Winter 2019","Spring 2020","Fall 2020","Winter 2020"];
+      let legend = svg.selectAll(".legend")
+          .data(options.slice())
+          .enter().append("g")
+          .attr("class", "legend")
+          .attr("background-color", "#A9A9A9")
+          .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+      
+      legend.append("rect")
+          .attr("x", width/2-450)
+          .attr("y", height/2)
+          .attr("width", 18)
+          .attr("height", 18)
+          .style("fill", color);
+
+      legend.append("text")
+          .attr("x", width/2-430)
+          .attr("y", height/2+10)
+          .attr("dy", ".35em")
+          .style("text-anchor", "start")
+          .text(function(d) { return d; });
+
+    });
+  }
+
+  //Initialize plot
+  update('All.csv');
+
+
+  function wrap(text, width) {
+    text.each(function() {
+      let text = d3.select(this),
+          words = text.text().split(/\s+/).reverse(),
+          word,
+          line = [],
+          lineNumber = 0,
+          lineHeight = 1.1, // ems
+          y = text.attr("y"),
+          dy = parseFloat(text.attr("dy")),
+          tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em")
+      while (word = words.pop()) {
+        line.push(word)
+        tspan.text(line.join(" "))
+        if (tspan.node().getComputedTextLength() > width) {
+          line.pop()
+          tspan.text(line.join(" "))
+          line = [word]
+          tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", `${++lineNumber * lineHeight + dy}em`).text(word)
+        }
+      }
+    })
+  }
+
+  </script>
+</body>

@@ -1,0 +1,85 @@
+html, body {
+	margin: 15px;
+}
+
+text {
+	font-size: 1.3em ;
+}
+
+.title {
+	font-size:1.3em;
+	font-family:sans-serif;
+	text-anchor:middle;
+}
+
+#dataviz {
+	float:left ;
+	width: 65%;
+	height:auto;
+}
+
+.button {
+	display:inline-block;
+ 	padding:0.35em 1.2em;
+	border:0.1em solid #00008B;
+	margin:0 0.3em 0.3em 0;
+	border-radius:0.12em;
+	box-sizing: border-box;
+	text-decoration:none;
+	font-size: 1em;
+	font-family:sans-serif;
+	font-weight:300;
+	color:#00008B;
+	text-align:center;
+	transition: all 0.2s;
+}
+
+.button:hover {
+	color:#000000;
+	background-color:#D3D3D3;
+}
+
+.selection {
+	float: left;
+	text-align: left;
+	padding: 5px 10px 5px 10px;
+	text-decoration: none;
+	width:30%;
+	height: auto;
+}
+
+.toolTip {
+ 	position: absolute;
+ 	display: none;
+    font-family: sans-serif;
+ 	font-size: 1em ;
+ 	min-width: 80px;
+ 	height: auto;
+ 	background: none repeat scroll 0 0 #ffffff;
+ 	border: 1px solid #6F257F;
+ 	padding: 5px;
+ 	text-align: center;
+}
+
+.legend {
+    font-family: sans-serif;
+    font-size: 60%;
+    background-color: #A9A9A9	;
+}
+
+
+@media screen and (max-width:1250px){
+  #dataviz {
+  	width: 100%;
+    height: auto;
+  }
+  .selection {
+	width: 100%;
+	bottom: 0;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top: 20px;
+	padding-bottom: 20px;
+  }
+}
